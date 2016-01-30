@@ -1759,6 +1759,7 @@ MediumEditor.extensions = {};
             while (!stop && node) {
                 // Only iterate over elements and text nodes
                 if (node.nodeType > 3) {
+                    node = nodeStack.pop();
                     continue;
                 }
 
@@ -1964,6 +1965,7 @@ MediumEditor.extensions = {};
             while (!stop && node) {
                 // Only iterate over elements and text nodes
                 if (node.nodeType > 3) {
+                    node = nodeStack.pop();
                     continue;
                 }
 
@@ -4726,9 +4728,17 @@ MediumEditor.extensions = {};
          */
         cleanPastedHTML: false,
 
+        /* preCleanReplacements: [Array]
+         * custom pairs (2 element arrays) of RegExp and replacement text to use during past when
+         * __forcePlainText__ or __cleanPastedHTML__ are `true` OR when calling `cleanPaste(text)` helper method.
+         * These replacements are executed before any medium editor defined replacements.
+         */
+        preCleanReplacements: [],
+
         /* cleanReplacements: [Array]
          * custom pairs (2 element arrays) of RegExp and replacement text to use during paste when
          * __forcePlainText__ or __cleanPastedHTML__ are `true` OR when calling `cleanPaste(text)` helper method.
+         * These replacements are executed after any medium editor defined replacements.
          */
         cleanReplacements: [],
 
@@ -4806,7 +4816,10 @@ MediumEditor.extensions = {};
         cleanPaste: function (text) {
             var i, elList, tmp, workEl,
                 multiline = /<p|<br|<div/.test(text),
-                replacements = createReplacements().concat(this.cleanReplacements || []);
+                replacements = [].concat(
+                    this.preCleanReplacements || [],
+                    createReplacements(),
+                    this.cleanReplacements || []);
 
             for (i = 0; i < replacements.length; i += 1) {
                 text = text.replace(replacements[i][0], replacements[i][1]);
